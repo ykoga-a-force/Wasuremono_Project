@@ -1,0 +1,7 @@
+wasuremono.db
+__pycache__/
+.venv/
+.streamlit/
+開発ロードマップ.md
+詳細仕様書.md
+要件定義書：朝の持ち物チェック＆出発応援アプリ（仮称：キラキラ出発マスター）.md
