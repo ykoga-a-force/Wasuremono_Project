@@ -12,9 +12,36 @@ class ChildView:
         inject_common_css()
         render_header()
 
+        if "debug_logs" not in st.session_state:
+            st.session_state.debug_logs = []
+
+        # 1. Get Mode
         mode_info = self.logic_manager.get_current_mode()
         mode = mode_info["mode"]
 
+        # 2. Celebration (Always at top for visibility)
+        if st.session_state.get("just_departed") or st.session_state.get("trigger_balloon"):
+            print("[UI] SUCCESS: FLYING BALLOONS")
+            st.session_state.debug_logs.append("Effect: SUCCESS")
+            self._trigger_celebration()
+            st.session_state.just_departed = False
+            st.session_state.trigger_balloon = False
+
+        # 3. Debug Sidebar
+        with st.sidebar:
+            st.title("🛠 Debug Panel")
+            st.write(f"**Current Mode:** {mode}")
+            st.write(f"**Status Info:** {mode_info.get('debug_msg', '')}")
+            st.write("---")
+            st.write("**Recent Logs:**")
+            for log in reversed(st.session_state.debug_logs[-10:]):
+                st.text(log)
+            if st.button("Reset All"):
+                for key in list(st.session_state.keys()):
+                    del st.session_state[key]
+                st.rerun()
+
+        # 4. Main Rendering
         if mode == "morning":
             self._render_morning_mode()
         elif mode == "departure":
@@ -23,7 +50,7 @@ class ChildView:
         elif mode == "return":
             self._render_return_mode()
             render_footer()
-        
+
     def _render_morning_mode(self):
         items = self.logic_manager.get_items_for_today()
         
@@ -55,37 +82,40 @@ class ChildView:
                     st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
-        self._render_departure_button()
+        self._render_departure_button_logic()
         render_footer()
 
-    def _render_departure_button(self):
+    @st.fragment(run_every="10s")
+    def _render_departure_button_logic(self):
         time_rules = self.logic_manager.get_time_restriction()
         is_disabled = False
         warning_msg = ""
+        now_t = datetime.now().time()
 
         if time_rules["is_restricted"]:
-            now_t = datetime.now().time()
             if not (time_rules["start_time"] <= now_t <= time_rules["end_time"]):
                 is_disabled = True
-                warning_msg = f"今は魔法が使えない時間だよ。<br>{time_rules['start_time'].strftime('%H:%M')}になったら押せるよ！"
+                warning_msg = f"現在は出発できません。{time_rules['start_time'].strftime('%H:%M')}〜{time_rules['end_time'].strftime('%H:%M')}の間だけボタンが押せます。"
         
+        # 10秒ごとに自動更新していることを示すインジケーター（開発用/ユーザー安心用）
+        st.markdown(f"<div style='text-align:right; font-size:0.7rem; color:#ccc;'>Last Update: {now_t.strftime('%H:%M:%S')}</div>", unsafe_allow_html=True)
+
         _, col, _ = st.columns([1, 2, 1])
         with col:
             if is_disabled:
                  st.button("🕐 待機中...", key="btn_main_go", disabled=True, use_container_width=True)
                  if warning_msg:
-                     st.markdown(f"<div style='text-align:center; color:red; font-weight:bold;'>{warning_msg}</div>", unsafe_allow_html=True)
+                     st.markdown(f"<div style='text-align:center; color:red; font-size:0.8rem;'>{warning_msg}</div>", unsafe_allow_html=True)
             else:
                 if st.button("🚀 行ってきます！", key="btn_main_go", type="primary", use_container_width=True):
+                    st.session_state.debug_logs.append("Button Clicked!")
                     self.logic_manager.record_departure()
                     st.session_state.just_departed = True
+                    st.session_state.trigger_balloon = True
+                    st.session_state.debug_logs.append("DB Saved & Rerunning...")
                     st.rerun()
 
     def _render_departure_mode(self, dep_time):
-        if st.session_state.get("just_departed"):
-            self._trigger_celebration()
-            st.session_state.just_departed = False
-
         messages = self.logic_manager.get_messages_for_today()
         msg = messages.get("departure") or "気をつけていってらっしゃい！"
         

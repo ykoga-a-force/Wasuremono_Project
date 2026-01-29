@@ -1,5 +1,8 @@
-wasuremono.db
+venv/
+DB/
 __pycache__/
+*.pyc
+wasuremono.db
 .venv/
 .streamlit/
 開発ロードマップ.md

@@ -103,6 +103,9 @@ class AdminView:
                             if is_scheduled: label += " ✨"
                             if st.button(label, key=f"day_{current_date_str}", use_container_width=True):
                                 st.session_state["admin_dialog_date"] = current_date_str
+                                # 以前のダイアログデータが残っているのを防ぐため、明示的にクリアするっぴ
+                                if "dialog_date" in st.session_state:
+                                    del st.session_state["dialog_date"]
                                 st.rerun()
 
         if not st.session_state.admin_bulk_mode:
@@ -228,6 +231,7 @@ class AdminView:
             self.logic_manager.save_schedule_from_ui(target_date_str, item_inputs, dep_msg, ret_msg, is_restricted, start_t, end_t)
             st.success("Saved perfectly!")
             if "admin_dialog_date" in st.session_state: del st.session_state["admin_dialog_date"]
+            if "dialog_date" in st.session_state: del st.session_state["dialog_date"] # Force reload on next click
             st.rerun()
 
     def _inject_admin_css(self):
