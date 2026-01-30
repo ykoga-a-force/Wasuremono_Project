@@ -12,6 +12,7 @@ st.set_page_config(
     layout="centered"
 )
 
+
 # --- Initialization Caching ---
 @st.cache_resource
 def get_logic_manager():

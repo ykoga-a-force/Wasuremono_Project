@@ -11,6 +11,9 @@ class ChildView:
     def render(self):
         inject_common_css()
         render_header()
+        
+        # 0. 環境監視 (日付変更の検知)
+        self._render_env_monitor()
 
         if "debug_logs" not in st.session_state:
             st.session_state.debug_logs = []
@@ -139,6 +142,20 @@ class ChildView:
             <p>{msg}</p>
         </div>
         """, unsafe_allow_html=True)
+
+    @st.fragment(run_every="60s")
+    def _render_env_monitor(self):
+        """日付が変わったことを検知して画面をリロードするっぴ！"""
+        current_date = datetime.now().strftime("%Y-%m-%d")
+        if "view_date" not in st.session_state:
+            st.session_state.view_date = current_date
+            
+        if current_date != st.session_state.view_date:
+            st.session_state.view_date = current_date
+            # 日付が変わったので、チェック状態などをリセットしてリロード
+            if "checked_items" in st.session_state:
+                st.session_state.checked_items = set()
+            st.rerun()
 
     def _trigger_celebration(self):
         eff = random.choice(["balloons", "snow", "mix"])
