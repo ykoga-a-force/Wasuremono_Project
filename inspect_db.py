@@ -1,7 +1,9 @@
 import sqlite3
 import os
 
-db_path = os.path.join("DB", "wasuremono.db")
+# ファイルの場所を基準に絶対パスを取得
+base_dir = os.path.dirname(os.path.abspath(__file__))
+db_path = os.path.join(base_dir, "wasuremono.db")
 if not os.path.exists(db_path):
     print(f"Error: {db_path} not found")
     exit()
