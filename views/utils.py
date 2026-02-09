@@ -20,7 +20,19 @@ def inject_common_css():
     st.markdown(f"""
     <style>
     /* Global Styles */
-    .stApp {{ background-color: #87CEEB; font-family: 'Helvetica', sans-serif; }}
+    html, body {{
+        background-color: #87CEEB !important;
+        background-attachment: fixed !important;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+    }}
+    [data-testid="stAppViewContainer"], [data-testid="stHeader"], [data-testid="stMain"] {{
+        background-color: transparent !important;
+    }}
+    .stApp {{
+        background-color: transparent !important;
+    }}
     .app-title {{ text-align: center; color: white; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }}
     .date-display {{ text-align: center; color: white; margin-bottom: 20px; font-weight: bold; }}
     .message-card {{ padding: 30px; border-radius: 20px; text-align: center; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }}
@@ -144,8 +156,10 @@ def render_header(show_clock=True):
         """
         components.html(clock_html, height=150)
 
-def render_footer():
+def render_footer(show_buttons=True):
     """Renders the navigation buttons at the bottom."""
+    if not show_buttons:
+        return
     st.markdown("<br><br>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:

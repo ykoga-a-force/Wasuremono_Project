@@ -11,15 +11,45 @@ class AchievementView:
         inject_common_css()
         render_header(show_clock=False)
 
-        st.markdown("---")
-        st.markdown('<h2 style="text-align:center;">🏆 実績カレンダー 🏆</h2>', unsafe_allow_html=True)
-        
-        if st.button("⬅️ メイン画面に戻る", key="btn_back_home"):
-            st.session_state.page = "main"
-            st.rerun()
+        # 0. 表示月のステート管理
+        if "cal_year" not in st.session_state:
+            st.session_state.cal_year = datetime.now().year
+        if "cal_month" not in st.session_state:
+            st.session_state.cal_month = datetime.now().month
 
-        year = datetime.now().year
-        month = datetime.now().month
+        year = st.session_state.cal_year
+        month = st.session_state.cal_month
+
+        st.markdown("---")
+        st.markdown(f'<h2 style="text-align:center;">🏆 {year}年{month}月の実績 🏆</h2>', unsafe_allow_html=True)
+        
+        # 1. ナビゲーションボタン (前へ / 戻る / 次へ)
+        nc1, nc2, nc3 = st.columns([1, 1, 1])
+        with nc1:
+            if st.button("◀️ 前の月", key="btn_prev_month", use_container_width=True):
+                if st.session_state.cal_month == 1:
+                    st.session_state.cal_month = 12
+                    st.session_state.cal_year -= 1
+                else:
+                    st.session_state.cal_month -= 1
+                st.rerun()
+        
+        with nc2:
+            if st.button("🏠 戻る", key="btn_back_home", use_container_width=True):
+                st.session_state.page = "main"
+                # ホームに戻る時に表示月をリセットしたければここで
+                st.rerun()
+
+        with nc3:
+            if st.button("次へ ➡️", key="btn_next_month", use_container_width=True):
+                if st.session_state.cal_month == 12:
+                    st.session_state.cal_month = 1
+                    st.session_state.cal_year += 1
+                else:
+                    st.session_state.cal_month += 1
+                st.rerun()
+
+        st.markdown("<br>", unsafe_allow_html=True)
         
         history = self.logic_manager.get_monthly_history(year, month)
         
@@ -40,7 +70,7 @@ class AchievementView:
                     else:
                         st.markdown("<div style='height:80px;'></div>", unsafe_allow_html=True)
         
-        render_footer()
+        render_footer(show_buttons=False)
 
     def _render_cal_cell(self, day, data):
         bg = "rgba(255,255,255,0.9)"

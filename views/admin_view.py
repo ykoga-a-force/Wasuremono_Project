@@ -31,10 +31,10 @@ class AdminView:
         if st.session_state.admin_bulk_mode and st.session_state.get("show_bulk_dialog"):
             self.bulk_edit_dialog()
 
-        col_back, col_title, col_add = st.columns([1, 4, 1])
+        col_back, col_prev, col_title, col_next, col_add = st.columns([1, 1, 2, 1, 1])
         
         with col_back:
-            if st.button("⬅️", key="btn_back_main"):
+            if st.button("⬅️", key="btn_back_main", use_container_width=True):
                 keys_to_clear = ["admin_dialog_date", "show_bulk_dialog", "admin_bulk_mode", "admin_selected_dates"]
                 for k in keys_to_clear:
                     if k in st.session_state:
@@ -42,13 +42,30 @@ class AdminView:
                 st.session_state["page"] = "main"
                 st.rerun()
 
+        with col_prev:
+            if st.button("◀️", key="admin_prev_month", use_container_width=True):
+                if st.session_state.admin_month == 1:
+                    st.session_state.admin_month = 12
+                    st.session_state.admin_year -= 1
+                else:
+                    st.session_state.admin_month -= 1
+                st.rerun()
+
         with col_title:
-            month_name = calendar.month_name[month]
-            st.markdown(f'<div class="admin-header-title">{month_name} {year}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="admin-header-title">{year}年{month}月</div>', unsafe_allow_html=True)
+
+        with col_next:
+            if st.button("▶️", key="admin_next_month", use_container_width=True):
+                if st.session_state.admin_month == 12:
+                    st.session_state.admin_month = 1
+                    st.session_state.admin_year += 1
+                else:
+                    st.session_state.admin_month += 1
+                st.rerun()
 
         with col_add:
             btn_label = "✅ 一括" if not st.session_state.admin_bulk_mode else "戻る"
-            if st.button(btn_label, key="btn_toggle_bulk", type="primary" if st.session_state.admin_bulk_mode else "secondary"):
+            if st.button(btn_label, key="btn_toggle_bulk", type="primary" if st.session_state.admin_bulk_mode else "secondary", use_container_width=True):
                 st.session_state.admin_bulk_mode = not st.session_state.admin_bulk_mode
                 if "admin_dialog_date" in st.session_state:
                     del st.session_state["admin_dialog_date"]
